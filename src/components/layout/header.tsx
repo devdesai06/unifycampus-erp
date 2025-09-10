@@ -11,6 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/hooks/useAuth"
 
 interface HeaderProps {
   userRole?: "student" | "faculty" | "admin"
@@ -19,6 +20,12 @@ interface HeaderProps {
 }
 
 export function Header({ userRole = "student", userName = "John Doe", userEmail = "john.doe@college.edu" }: HeaderProps) {
+  const { profile, signOut } = useAuth()
+  
+  // Use auth data if available, otherwise fallback to props
+  const displayName = profile ? `${profile.first_name} ${profile.last_name}` : userName
+  const displayEmail = profile?.email || userEmail
+  const displayRole = profile?.role || userRole
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -51,9 +58,9 @@ export function Header({ userRole = "student", userName = "John Doe", userEmail 
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt={userName} />
+                  <AvatarImage src={profile?.avatar_url || "/placeholder-avatar.jpg"} alt={displayName} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {userName.split(" ").map(n => n[0]).join("")}
+                    {displayName.split(" ").map(n => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -61,10 +68,10 @@ export function Header({ userRole = "student", userName = "John Doe", userEmail 
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{userName}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
+                  <p className="text-sm font-medium leading-none">{displayName}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{displayEmail}</p>
                   <Badge variant="secondary" className="w-fit text-xs capitalize">
-                    {userRole}
+                    {displayRole}
                   </Badge>
                 </div>
               </DropdownMenuLabel>
@@ -78,7 +85,7 @@ export function Header({ userRole = "student", userName = "John Doe", userEmail 
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={signOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

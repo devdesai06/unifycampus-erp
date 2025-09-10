@@ -6,18 +6,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function Login() {
+  const { signIn } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement authentication logic here
-    console.log("Login attempt:", formData)
+    await signIn(formData.email, formData.password)
   }
 
   const handleGoogleLogin = () => {

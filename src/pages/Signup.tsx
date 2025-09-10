@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { BookOpen, Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react"
+import { BookOpen, Eye, EyeOff, Mail, Lock, User, Phone, IdCard, Building } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -7,9 +7,12 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function Signup() {
+  const { signUp } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,10 +25,15 @@ export default function Signup() {
     confirmPassword: ""
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement signup logic here
-    console.log("Signup attempt:", formData)
+    
+    if (formData.password !== formData.confirmPassword) {
+      // Handle password mismatch
+      return
+    }
+    
+    await signUp(formData.email, formData.password, formData)
   }
 
   const handleGoogleSignup = () => {
@@ -195,21 +203,34 @@ export default function Signup() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="confirmPassword">Confirm Password</Label>
+                   <div className="relative">
+                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                     <Input
+                       id="confirmPassword"
+                       type={showConfirmPassword ? "text" : "password"}
+                       placeholder="Confirm your password"
+                       value={formData.confirmPassword}
+                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                       className="pl-10 pr-10"
+                       required
+                     />
+                     <Button
+                       type="button"
+                       variant="ghost"
+                       size="sm"
+                       className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                     >
+                       {showConfirmPassword ? (
+                         <EyeOff className="h-4 w-4 text-muted-foreground" />
+                       ) : (
+                         <Eye className="h-4 w-4 text-muted-foreground" />
+                       )}
+                     </Button>
+                   </div>
+                 </div>
 
               {/* Create Account Button */}
               <Button type="submit" variant="hero" className="w-full" size="lg">
