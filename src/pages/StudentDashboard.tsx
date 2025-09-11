@@ -16,16 +16,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/hooks/useAuth"
+import { useStudentData } from "@/hooks/useStudentData"
 
 export default function StudentDashboard() {
+  const { profile } = useAuth();
+  const studentData = useStudentData();
+  if (studentData.loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Header userRole="student" userName="Sarah Johnson" userEmail="sarah.johnson@college.edu" />
+      <Header userRole="student" userName={`${profile?.first_name} ${profile?.last_name}`} userEmail={profile?.email} />
       
       <main className="container px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, Sarah!</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {profile?.first_name}!</h1>
           <p className="text-muted-foreground">Here's what's happening with your studies today.</p>
         </div>
 
@@ -33,26 +41,26 @@ export default function StudentDashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <KpiCard
             title="Overall Attendance"
-            value="92%"
+            value={`${studentData.attendance}%`}
             icon={<TrendingUp />}
             variant="primary"
             trend={{ value: 5, isPositive: true, label: "vs last month" }}
           />
           <KpiCard
             title="Fee Status"
-            value="Paid"
+            value={studentData.feeStatus?.status === 'paid' ? 'Paid' : 'Pending'}
             icon={<CheckCircle />}
-            variant="success"
+            variant={studentData.feeStatus?.status === 'paid' ? 'success' : 'warning'}
           />
           <KpiCard
             title="Current CGPA"
-            value="8.7"
+            value={studentData.cgpa.toString()}
             icon={<BookOpen />}
             variant="accent"
           />
           <KpiCard
             title="Upcoming Exams"
-            value="3"
+            value={studentData.upcomingExams.length.toString()}
             icon={<Calendar />}
             variant="warning"
           />
@@ -73,19 +81,19 @@ export default function StudentDashboard() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Student ID</p>
-                  <p className="font-medium">CS21B1089</p>
+                  <p className="font-medium">{profile?.student_id || 'N/A'}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Program</p>
-                  <p className="font-medium">B.Tech Computer Science</p>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{profile?.email}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Year</p>
-                  <p className="font-medium">3rd Year</p>
+                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="font-medium">{profile?.phone || 'N/A'}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Semester</p>
-                  <p className="font-medium">6th Semester</p>
+                  <p className="text-sm text-muted-foreground">Role</p>
+                  <p className="font-medium capitalize">{profile?.role}</p>
                 </div>
               </CardContent>
             </Card>
@@ -126,12 +134,7 @@ export default function StudentDashboard() {
                 <CardDescription>6th Semester - 2024</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { name: "Machine Learning", code: "CS602", attendance: 85 },
-                  { name: "Software Engineering", code: "CS603", attendance: 92 },
-                  { name: "Database Systems", code: "CS604", attendance: 78 },
-                  { name: "Web Development", code: "CS605", attendance: 95 },
-                ].map((subject) => (
+                {studentData.subjects.map((subject) => (
                   <div key={subject.code} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
@@ -157,26 +160,20 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Block</p>
-                    <p className="font-medium">A-Block</p>
+                {studentData.hostelInfo ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Block</p>
+                      <p className="font-medium">{studentData.hostelInfo.block}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Room</p>
+                      <p className="font-medium">{studentData.hostelInfo.room}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Room</p>
-                    <p className="font-medium">A-204</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Warden</p>
-                    <p className="font-medium">Dr. Smith</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contact</p>
-                    <p className="font-medium">+91 98765 43210</p>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-muted-foreground">No hostel assignment found</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -192,11 +189,7 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { subject: "Machine Learning", date: "March 15, 2024", type: "Mid-term" },
-                  { subject: "Software Engineering", date: "March 20, 2024", type: "Assignment" },
-                  { subject: "Database Systems", date: "March 25, 2024", type: "Final" },
-                ].map((exam, index) => (
+                {studentData.upcomingExams.map((exam, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <p className="font-medium">{exam.subject}</p>
@@ -219,26 +212,7 @@ export default function StudentDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  {
-                    title: "Fee Payment Deadline",
-                    message: "Semester fees due by March 30th",
-                    type: "warning",
-                    time: "2 hours ago"
-                  },
-                  {
-                    title: "Library Hours Extended",
-                    message: "Library now open 24/7 during exam period",
-                    type: "info",
-                    time: "1 day ago"
-                  },
-                  {
-                    title: "Hostel Maintenance",
-                    message: "Water supply will be off on Sunday morning",
-                    type: "warning",
-                    time: "2 days ago"
-                  },
-                ].map((announcement, index) => (
+                {studentData.announcements.map((announcement, index) => (
                   <div key={index} className="p-3 border rounded-lg">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-medium text-sm">{announcement.title}</h4>

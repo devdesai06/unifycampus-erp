@@ -18,11 +18,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { useAuth } from "@/hooks/useAuth"
+import { useFacultyData } from "@/hooks/useFacultyData"
 
 export default function FacultyDashboard() {
+  const { profile } = useAuth();
+  const facultyData = useFacultyData();
+  if (facultyData.loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Header userRole="faculty" userName="Dr. Robert Martinez" userEmail="robert.martinez@college.edu" />
+      <Header userRole="faculty" userName={`${profile?.first_name} ${profile?.last_name}`} userEmail={profile?.email} />
       
       <main className="container px-4 py-8">
         {/* Welcome Section */}
@@ -35,25 +43,25 @@ export default function FacultyDashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <KpiCard
             title="Classes Teaching"
-            value="6"
+            value={facultyData.classes.length.toString()}
             icon={<BookOpen />}
             variant="primary"
           />
           <KpiCard
             title="Total Students"
-            value="247"
+            value={facultyData.totalStudents.toString()}
             icon={<Users />}
             variant="accent"
           />
           <KpiCard
             title="Pending Grades"
-            value="12"
+            value={facultyData.pendingGrades.toString()}
             icon={<FileText />}
             variant="warning"
           />
           <KpiCard
             title="Today's Classes"
-            value="3"
+            value={facultyData.todaySchedule.length.toString()}
             icon={<Clock />}
             variant="success"
           />
@@ -73,29 +81,7 @@ export default function FacultyDashboard() {
                 <CardDescription>March 15, 2024</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  {
-                    subject: "Machine Learning",
-                    code: "CS602",
-                    time: "09:00 - 10:30 AM",
-                    room: "Room 201",
-                    status: "completed"
-                  },
-                  {
-                    subject: "Data Structures",
-                    code: "CS301",
-                    time: "11:00 - 12:30 PM",
-                    room: "Room 105",
-                    status: "upcoming"
-                  },
-                  {
-                    subject: "Software Engineering",
-                    code: "CS603",
-                    time: "02:00 - 03:30 PM",
-                    room: "Room 203",
-                    status: "upcoming"
-                  }
-                ].map((schedule, index) => (
+                {facultyData.todaySchedule.map((schedule, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <p className="font-medium">{schedule.subject}</p>
@@ -147,36 +133,7 @@ export default function FacultyDashboard() {
                 <CardDescription>Current semester enrollment</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { 
-                    subject: "Machine Learning",
-                    code: "CS602",
-                    students: 42,
-                    attendance: 89,
-                    avgGrade: 8.2
-                  },
-                  {
-                    subject: "Data Structures", 
-                    code: "CS301",
-                    students: 65,
-                    attendance: 92,
-                    avgGrade: 7.8
-                  },
-                  {
-                    subject: "Software Engineering",
-                    code: "CS603", 
-                    students: 38,
-                    attendance: 85,
-                    avgGrade: 8.5
-                  },
-                  {
-                    subject: "Database Systems",
-                    code: "CS604",
-                    students: 52,
-                    attendance: 88,
-                    avgGrade: 7.9
-                  }
-                ].map((course, index) => (
+                {facultyData.classes.map((course, index) => (
                   <div key={index} className="p-4 border rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
@@ -329,26 +286,7 @@ export default function FacultyDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  {
-                    student: "Sarah Johnson",
-                    subject: "Question about ML Assignment",
-                    time: "30 minutes ago",
-                    unread: true
-                  },
-                  {
-                    student: "Michael Chen", 
-                    subject: "Request for Grade Review",
-                    time: "2 hours ago",
-                    unread: true
-                  },
-                  {
-                    student: "Alex Rodriguez",
-                    subject: "Attendance Clarification",
-                    time: "1 day ago",
-                    unread: false
-                  }
-                ].map((message, index) => (
+                {facultyData.messages.map((message, index) => (
                   <div key={index} className={`
                     p-3 border rounded-lg cursor-pointer hover:bg-muted/50
                     ${message.unread ? 'border-primary/20 bg-primary/5' : ''}

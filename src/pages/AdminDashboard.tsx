@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { KpiCard } from "@/components/ui/kpi-card"
@@ -18,11 +19,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { useAuth } from "@/hooks/useAuth"
+import { useAdminData } from "@/hooks/useAdminData"
 
 export default function AdminDashboard() {
+  const { profile } = useAuth();
+  const adminData = useAdminData();
+  if (adminData.loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Header userRole="admin" userName="Dr. Patricia Wilson" userEmail="patricia.wilson@college.edu" />
+      <Header userRole="admin" userName={`${profile?.first_name} ${profile?.last_name}`} userEmail={profile?.email} />
       
       <main className="container px-4 py-8">
         {/* Welcome Section */}
@@ -35,27 +44,27 @@ export default function AdminDashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
           <KpiCard
             title="Total Students"
-            value="2,847"
+            value={adminData.totalStudents.toLocaleString()}
             icon={<Users />}
             variant="primary"
             trend={{ value: 12, isPositive: true, label: "vs last semester" }}
           />
           <KpiCard
             title="Fees Collected Today"
-            value="₹4,23,000"
+            value={`₹${(adminData.feesCollected / 1000).toFixed(0)}K`}
             icon={<DollarSign />}
             variant="success"
             trend={{ value: 8, isPositive: true, label: "vs yesterday" }}
           />
           <KpiCard
             title="Vacant Hostel Rooms"
-            value="23"
+            value={adminData.vacantRooms.toString()}
             icon={<Home />}
             variant="warning"
           />
           <KpiCard
             title="Faculty Members"
-            value="184"
+            value={adminData.totalFaculty.toString()}
             icon={<UserCheck />}
             variant="accent"
           />
@@ -65,7 +74,7 @@ export default function AdminDashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <KpiCard
             title="Active Courses"
-            value="127"
+            value={adminData.activeCourses.toString()}
             icon={<BookOpen />}
             variant="default"
           />
@@ -83,7 +92,7 @@ export default function AdminDashboard() {
           />
           <KpiCard
             title="Overall Attendance"
-            value="87.5%"
+            value={`${adminData.overallAttendance}%`}
             icon={<TrendingUp />}
             variant="primary"
           />
@@ -100,59 +109,16 @@ export default function AdminDashboard() {
                 <CardDescription>Live campus operations</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                {[
-                  {
-                    action: "New student admission completed",
-                    user: "Sarah Johnson",
-                    time: "2 minutes ago",
-                    type: "success",
-                    icon: <CheckCircle className="h-4 w-4" />
-                  },
-                  {
-                    action: "Fee payment received",
-                    user: "Michael Chen",
-                    time: "5 minutes ago",
-                    type: "success", 
-                    icon: <DollarSign className="h-4 w-4" />
-                  },
-                  {
-                    action: "Hostel room allocation",
-                    user: "Alex Rodriguez",
-                    time: "12 minutes ago",
-                    type: "info",
-                    icon: <Home className="h-4 w-4" />
-                  },
-                  {
-                    action: "Faculty attendance marked",
-                    user: "Dr. Emily Davis",
-                    time: "18 minutes ago",
-                    type: "info",
-                    icon: <UserCheck className="h-4 w-4" />
-                  },
-                  {
-                    action: "Library book overdue alert",
-                    user: "James Wilson",
-                    time: "25 minutes ago",
-                    type: "warning",
-                    icon: <AlertTriangle className="h-4 w-4" />
-                  },
-                  {
-                    action: "Course registration",
-                    user: "Lisa Anderson",
-                    time: "32 minutes ago",
-                    type: "info",
-                    icon: <BookOpen className="h-4 w-4" />
-                  }
-                ].map((activity, index) => (
+                {adminData.recentActivity.map((activity, index) => (
                   <div key={index} className="flex items-start space-x-3 p-3 border rounded-lg">
-                    <div className={`
-                      p-2 rounded-full
-                      ${activity.type === 'success' ? 'bg-success/10 text-success' : ''}
-                      ${activity.type === 'info' ? 'bg-primary/10 text-primary' : ''}
-                      ${activity.type === 'warning' ? 'bg-warning/10 text-warning' : ''}
-                    `}>
-                      {activity.icon}
-                    </div>
+                  <div className={`
+                    p-2 rounded-full
+                    ${activity.type === 'success' ? 'bg-success/10 text-success' : ''}
+                    ${activity.type === 'info' ? 'bg-primary/10 text-primary' : ''}
+                    ${activity.type === 'warning' ? 'bg-warning/10 text-warning' : ''}
+                  `}>
+                    <MessageCircle className="h-4 w-4" />
+                  </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{activity.action}</p>
                       <p className="text-xs text-muted-foreground">{activity.user}</p>
@@ -199,13 +165,7 @@ export default function AdminDashboard() {
                 <CardDescription>Current semester breakdown</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { department: "Computer Science", students: 847, capacity: 900, color: "primary" },
-                  { department: "Electronics", students: 623, capacity: 700, color: "accent" },
-                  { department: "Mechanical", students: 712, capacity: 800, color: "success" },
-                  { department: "Civil Engineering", students: 445, capacity: 500, color: "warning" },
-                  { department: "Biotechnology", students: 220, capacity: 300, color: "default" }
-                ].map((dept, index) => (
+                {adminData.departments.map((dept, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
@@ -327,12 +287,7 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { block: "A-Block", occupied: 145, total: 150, gender: "Boys" },
-                  { block: "B-Block", occupied: 142, total: 150, gender: "Boys" },
-                  { block: "C-Block", occupied: 138, total: 150, gender: "Girls" },
-                  { block: "D-Block", occupied: 144, total: 150, gender: "Girls" }
-                ].map((hostel, index) => (
+                {adminData.hostelOccupancy.map((hostel, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
