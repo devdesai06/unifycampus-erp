@@ -55,7 +55,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching profile:', error.message || error);
+      console.error('Full error details:', error);
       return null;
     }
 
