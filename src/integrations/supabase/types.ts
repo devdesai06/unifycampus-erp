@@ -737,6 +737,10 @@ export type Database = {
         Args: { student_uuid: string }
         Returns: number
       }
+      get_profile_id: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
